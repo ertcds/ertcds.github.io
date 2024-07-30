@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D自动轮换相册</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            perspective: 1000px;
+        }
+        .container {
+            width: 80vw;
+            height: 80vw;
+            max-width: 300px;
+            max-height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 20s infinite linear;
+        }
+        .container:hover {
+            animation-play-state: paused;
+        }
+        .photo {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            transition: transform 0.5s;
+            border-radius: 10px;
+        }
+        @keyframes rotate {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="photo-container">
+        <!-- 照片将通过JavaScript动态添加 -->
+    </div>
+    <div class="controls">
+        <button id="pauseBtn">暂停</button>
+        <button id="resumeBtn">继续</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('photo-container');
+        const photoUrls = [
+            'https://image.dooo.ng/c/2024/07/30/66a8f64478de0.webp',
+            'https://image.dooo.ng/c/2024/07/30/66a8f6447cb6d.webp',
+            'https://image.dooo.ng/c/2024/07/30/66a8f644825cc.webp',
+            'https://image.dooo.ng/c/2024/07/30/66a8f6447f1da.webp',
+            'https://image.dooo.ng/c/2024/07/30/66a8f6447f2e2.webp',
+            'https://image.dooo.ng/c/2024/07/30/66a8f64483a94.webp'
+        ];
+        const photoCount = photoUrls.length;
+
+        photoUrls.forEach((url, index) => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = `Photo ${index + 1}`;
+            img.className = 'photo';
+            const angle = (index / photoCount) * 360;
+            img.style.transform = `rotateY(${angle}deg) translateZ(250px)`;
+            container.appendChild(img);
+        });
+
+        let isRotating = true;
+        let currentAngle = 0;
+        let intervalId;
+
+        function autoRotate() {
+            if (isRotating) {
+                currentAngle += 1;
+                container.style.transform = `rotateY(${currentAngle}deg)`;
+            }
+        }
+
+        intervalId = setInterval(autoRotate, 50);
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isRotating = false;
+        });
+
+        document.getElementById('resumeBtn').addEventListener('click', () => {
+            isRotating = true;
+        });
+
+        // 触摸事件处理
+        let touchStartX;
+        container.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            isRotating = false;
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!touchStartX) return;
+            const touchEndX = e.touches[0].clientX;
+            const diff = touchEndX - touchStartX;
+            currentAngle += diff / 5;
+            container.style.transform = `rotateY(${currentAngle}deg)`;
+            touchStartX = touchEndX;
+        });
+
+        container.addEventListener('touchend', () => {
+            isRotating = true;
+        });
+    </script>
+</body>
+</html>
